@@ -3,6 +3,12 @@ import Login from "./pages/auth/Login";
 import Layout from "./components/layout/Layout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Attendance from "./pages/attendance/Attendance";
+import Leave from "./pages/leave/Leave";
+import Employees from "./pages/employees/Employees";
+import Payroll from "./pages/payroll/Payroll";
+import Announcements from "./pages/announcements/Announcements";
+import Documents from "./pages/documents/Documents";
+import Chatbot from "./pages/chatbot/Chatbot";
 import { useAuthStore } from "./store/useAuthStore";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -26,12 +32,12 @@ export default function App() {
       <Route element={<ProtectedLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/attendance" element={<Attendance />} />
-        <Route path="/leave" element={<div className="p-8 text-slate-800 text-2xl font-bold">Leave coming soon!</div>} />
-        <Route path="/employees" element={<div className="p-8 text-slate-800 text-2xl font-bold">Employees coming soon!</div>} />
-        <Route path="/payroll" element={<div className="p-8 text-slate-800 text-2xl font-bold">Payroll coming soon!</div>} />
-        <Route path="/announcements" element={<div className="p-8 text-slate-800 text-2xl font-bold">Announcements coming soon!</div>} />
-        <Route path="/documents" element={<div className="p-8 text-slate-800 text-2xl font-bold">Documents coming soon!</div>} />
-        <Route path="/chatbot" element={<div className="p-8 text-slate-800 text-2xl font-bold">AI Assistant coming soon!</div>} />
+       <Route path="/leave" element={<Leave />} />
+        <Route path="/employees" element={<Employees />} />
+        <Route path="/payroll" element={<Payroll />} />
+       <Route path="/announcements" element={<Announcements />} />
+       <Route path="/documents" element={<Documents />} />
+       <Route path="/chatbot" element={<Chatbot />} />
       </Route>
     </Routes>
   );
