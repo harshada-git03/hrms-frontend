@@ -15,14 +15,25 @@ const audienceConfig: Record<string, { gradient: string; bg: string; color: stri
   ADMIN: { gradient: "linear-gradient(135deg, #ec4899, #be185d)", bg: "rgba(236,72,153,0.1)", color: "#ec4899", icon: Shield },
 };
 
-const upcomingHolidays = [
-  { name: "Gudi Padwa", date: "Mar 30", emoji: "🪁", color: "#f59e0b" },
-  { name: "Ram Navami", date: "Apr 6", emoji: "🙏", color: "#ec4899" },
-  { name: "Ambedkar Jayanti", date: "Apr 14", emoji: "🇮🇳", color: "#6366f1" },
-  { name: "Good Friday", date: "Apr 18", emoji: "✝️", color: "#10b981" },
-  { name: "Maharashtra Day", date: "May 1", emoji: "🎉", color: "#f59e0b" },
-  { name: "Buddha Purnima", date: "May 12", emoji: "☮️", color: "#8b5cf6" },
-];
+const emojiMap: Record<string, string> = {
+  "National Holiday": "🇮🇳",
+  "Hindu Festival": "🪔",
+  "Muslim Festival": "🌙",
+  "Christian Holiday": "✝️",
+  "Buddhist Festival": "☮️",
+  "Regional Holiday": "🎉",
+  "Sikh Festival": "🙏",
+};
+
+const colorMap: Record<string, string> = {
+  "National Holiday": "#f59e0b",
+  "Hindu Festival": "#ec4899",
+  "Muslim Festival": "#10b981",
+  "Christian Holiday": "#6366f1",
+  "Buddhist Festival": "#8b5cf6",
+  "Regional Holiday": "#06b6d4",
+  "Sikh Festival": "#f97316",
+};
 
 const birthdays = [
   { name: "Harshada Patil", date: "Today 🎂", avatar: "H", gradient: "linear-gradient(135deg, #ec4899, #be185d)" },
@@ -40,7 +51,9 @@ const companyEvents = [
 export default function Announcements() {
   const { user } = useAuthStore();
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [holidays, setHolidays] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [holidaysLoading, setHolidaysLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -53,6 +66,7 @@ export default function Announcements() {
 
   useEffect(() => {
     fetchAnnouncements();
+    fetchHolidays();
   }, []);
 
   const fetchAnnouncements = async () => {
@@ -63,6 +77,22 @@ export default function Announcements() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const res = await axiosInstance.get("/api/calendar/holidays/2026");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const upcoming = res.data
+        .filter((h: any) => new Date(h.date) >= today)
+        .slice(0, 9);
+      setHolidays(upcoming);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setHolidaysLoading(false);
     }
   };
 
@@ -122,36 +152,90 @@ export default function Announcements() {
           )}
         </motion.div>
 
-        {/* Today's Highlight */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="relative rounded-3xl overflow-hidden mb-6 p-6"
-          style={{
-            background: "linear-gradient(135deg, #1e1a2e, #2d1f3d)",
-            border: "1px solid rgba(236,72,153,0.2)"
-          }}
-        >
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(236,72,153,0.04) 1px, transparent 0)`,
-            backgroundSize: "24px 24px"
-          }}/>
-          <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
-            style={{ background: "radial-gradient(circle, #ec4899, transparent)", transform: "translate(30%, -30%)" }}/>
+        {/* Today's Highlight — Dynamic */}
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.1 }}
+  className="relative rounded-3xl overflow-hidden mb-6 p-6"
+  style={{
+    background: announcements.length > 0
+      ? "linear-gradient(135deg, #1e1a2e, #1a2744)"
+      : "linear-gradient(135deg, #1e1a2e, #2d1f3d)",
+    border: announcements.length > 0
+      ? "1px solid rgba(99,102,241,0.2)"
+      : "1px solid rgba(236,72,153,0.2)"
+  }}
+>
+  <div className="absolute inset-0" style={{
+    backgroundImage: `radial-gradient(circle at 1px 1px, rgba(99,102,241,0.04) 1px, transparent 0)`,
+    backgroundSize: "24px 24px"
+  }}/>
+  <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
+    style={{
+      background: announcements.length > 0
+        ? "radial-gradient(circle, #6366f1, transparent)"
+        : "radial-gradient(circle, #ec4899, transparent)",
+      transform: "translate(30%, -30%)"
+    }}/>
 
-          <div className="relative z-10 flex items-center gap-6">
-            <div className="text-5xl">🎂</div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Star size={14} style={{ color: "#f59e0b" }} />
-                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#f59e0b" }}>Today's Birthday</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mb-1">Happy Birthday, Harshada! 🎉</h2>
-              <p className="text-slate-400 text-sm">Wishing you a wonderful day filled with joy and celebration!</p>
-            </div>
+  <div className="relative z-10 flex items-center justify-between">
+    <div className="flex items-center gap-6">
+      <div className="text-5xl">
+        {announcements.length > 0
+          ? announcements[0].title.toLowerCase().includes("birthday") ? "🎂"
+          : announcements[0].title.toLowerCase().includes("holi") ? "🎨"
+          : announcements[0].title.toLowerCase().includes("party") || announcements[0].title.toLowerCase().includes("celebrat") ? "🎉"
+          : announcements[0].title.toLowerCase().includes("holiday") || announcements[0].title.toLowerCase().includes("closed") ? "🏖️"
+          : "📢"
+          : "🎂"
+        }
+      </div>
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <Star size={14} style={{ color: "#f59e0b" }} />
+          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#f59e0b" }}>
+            {announcements.length > 0 ? "Latest Announcement" : "Today's Birthday"}
+          </span>
+        </div>
+        <h2 className="text-xl font-bold text-white mb-1">
+          {announcements.length > 0 ? announcements[0].title : "Happy Birthday, Harshada! 🎉"}
+        </h2>
+        <p className="text-slate-400 text-sm">
+          {announcements.length > 0
+            ? announcements[0].body.length > 80
+              ? announcements[0].body.substring(0, 80) + "..."
+              : announcements[0].body
+            : "Wishing you a wonderful day filled with joy and celebration!"
+          }
+        </p>
+        {announcements.length > 0 && (
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-xs text-slate-500">
+              {new Date(announcements[0].createdAt).toLocaleDateString("en-IN", {
+                day: "numeric", month: "short", year: "numeric"
+              })}
+            </span>
+            {announcements[0].createdByName && (
+              <span className="text-xs text-slate-500">by {announcements[0].createdByName}</span>
+            )}
           </div>
-        </motion.div>
+        )}
+      </div>
+    </div>
+
+    {/* Right side — announcement count badge */}
+    {announcements.length > 1 && (
+      <div className="hidden lg:flex flex-col items-center gap-1 flex-shrink-0">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+          style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
+          <span className="text-white font-bold text-lg">{announcements.length}</span>
+        </div>
+        <span className="text-xs text-slate-500">total</span>
+      </div>
+    )}
+  </div>
+</motion.div>
 
         {/* Tabs */}
         <motion.div
@@ -183,7 +267,7 @@ export default function Announcements() {
 
         <AnimatePresence mode="wait">
 
-          {/* Holidays Tab */}
+          {/* Holidays Tab — REAL API DATA */}
           {activeTab === "holidays" && (
             <motion.div
               key="holidays"
@@ -191,31 +275,66 @@ export default function Announcements() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {upcomingHolidays.map((holiday, i) => (
-                  <motion.div
-                    key={holiday.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.07 }}
-                    whileHover={{ y: -4 }}
-                    className="rounded-2xl p-5 relative overflow-hidden"
-                    style={{
-                      background: "linear-gradient(135deg, #1e293b, #162032)",
-                      border: "1px solid rgba(148,163,184,0.08)"
-                    }}
-                  >
-                    <div className="text-4xl mb-3">{holiday.emoji}</div>
-                    <h3 className="text-white font-semibold mb-1">{holiday.name}</h3>
-                    <div className="flex items-center gap-2">
-                      <Calendar size={12} style={{ color: holiday.color }} />
-                      <span className="text-xs font-semibold" style={{ color: holiday.color }}>{holiday.date}</span>
-                    </div>
-                    <div className="absolute bottom-0 right-0 w-20 h-20 rounded-full opacity-10"
-                      style={{ background: `radial-gradient(circle, ${holiday.color}, transparent)`, transform: "translate(30%, 30%)" }}/>
-                  </motion.div>
-                ))}
-              </div>
+              {holidaysLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="rounded-2xl p-5 animate-pulse"
+                      style={{ background: "#1e293b", height: 130 }} />
+                  ))}
+                </div>
+              ) : holidays.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-slate-500 text-sm">No upcoming holidays found.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {holidays.map((holiday, i) => {
+                    const emoji = emojiMap[holiday.type] || "🎊";
+                    const color = colorMap[holiday.type] || "#6366f1";
+                    const date = new Date(holiday.date);
+                    const dateStr = date.toLocaleDateString("en-IN", {
+                      day: "numeric", month: "short"
+                    });
+                    const isThisMonth = date.getMonth() === new Date().getMonth();
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.07 }}
+                        whileHover={{ y: -4 }}
+                        className="rounded-2xl p-5 relative overflow-hidden"
+                        style={{
+                          background: "linear-gradient(135deg, #1e293b, #162032)",
+                          border: isThisMonth
+                            ? `1px solid ${color}40`
+                            : "1px solid rgba(148,163,184,0.08)"
+                        }}
+                      >
+                        {isThisMonth && (
+                          <div className="absolute top-3 right-3">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                              style={{ background: `${color}20`, color }}>
+                              This month
+                            </span>
+                          </div>
+                        )}
+                        <div className="text-4xl mb-3">{emoji}</div>
+                        <h3 className="text-white font-semibold mb-1">{holiday.name}</h3>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-2">
+                            <Calendar size={12} style={{ color }} />
+                            <span className="text-xs font-semibold" style={{ color }}>{dateStr}</span>
+                          </div>
+                          <span className="text-xs text-slate-600">{holiday.type}</span>
+                        </div>
+                        <div className="absolute bottom-0 right-0 w-20 h-20 rounded-full opacity-10"
+                          style={{ background: `radial-gradient(circle, ${color}, transparent)`, transform: "translate(30%, 30%)" }}/>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
           )}
 
