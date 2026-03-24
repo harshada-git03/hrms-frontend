@@ -1,0 +1,1 @@
+export const BASE_URL = "https://hrms-java-production.up.railway.app";
